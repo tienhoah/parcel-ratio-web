@@ -1,4 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ParcelService } from './parcel.service';
 
 @Component({
   imports: [],
@@ -7,5 +9,6 @@ import { Component, signal } from '@angular/core';
   templateUrl: './app.html',
 })
 export class App {
-  protected readonly title = signal('parcel-ratio-web');
+  private svc = inject(ParcelService);
+  protected readonly parcels = toSignal(this.svc.getAll(), { initialValue: [] });
 }
