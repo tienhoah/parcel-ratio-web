@@ -1,8 +1,12 @@
-<h1>Parcels</h1>
-<ul>
-  @for (parcel of parcels(); track parcel.id) {
-    <li>{{ parcel.id }} — {{ parcel.address }}</li>
-  } @empty {
-    <li>No parcels</li>
-  }
-</ul>
+<header class="topbar">
+  <span class="title">Ratio Study</span>
+  <span class="sub">City of Vancouver · 2026 roll</span>
+</header>
+
+<div class="body">
+  <app-map-view class="map" />
+  <aside class="panel">
+    <!-- static placeholder for F2 -->
+    <p class="sub">Panel — F3</p>
+  </aside>
+</div>

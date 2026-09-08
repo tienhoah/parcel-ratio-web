@@ -1,1 +1,34 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles. Component styles live in each component's .css and are scoped. */
+
+:root {
+  /* mockup palette */
+  --ink: #0b0b0b;
+  --muted: #898781;
+  --secondary: #52514e;
+  --page: #f9f9f7;
+  --panel: #fcfcfb;
+  --border: #e1e0d9;
+  --link: #1c5cab;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    'IBM Plex Sans',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: var(--ink);
+  background: var(--page);
+}
+
+/* IBM Plex Mono, tabular figures, for every number in the UI */
+.mono {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}

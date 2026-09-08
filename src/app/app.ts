@@ -1,14 +1,10 @@
-import { Component, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ParcelService } from './parcel.service';
+import { Component } from '@angular/core';
+import { MapView } from './map-view/map-view';
 
 @Component({
-  imports: [],
   selector: 'app-root',
+  imports: [MapView],
   styleUrl: './app.css',
   templateUrl: './app.html',
 })
-export class App {
-  private svc = inject(ParcelService);
-  protected readonly parcels = toSignal(this.svc.getAll(), { initialValue: [] });
-}
+export class App {}
