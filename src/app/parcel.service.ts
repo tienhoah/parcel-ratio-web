@@ -10,7 +10,9 @@ export class ParcelService {
   private base = environment.apiBaseUrl;
 
   getAll(): Observable<Parcel[]> {
-    return this.http.get<Parcel[]>(`${this.base}/parcels`);
+    return this.http.get<Parcel[]>(`${this.base}/parcels`, {
+      params: { pageSize: 100 },
+    });
   }
 
   getById(id: string): Observable<Parcel> {

@@ -43,6 +43,29 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
   - `MapView` `:host { display: block }` — component hosts are `display: inline` by default,
     so the container had zero height and MapLibre rendered nothing. Both bugs stacked.
   - **F2 done when:** empty shell + basemap renders. ✅
+- **F3: done, PR #3 (`f3-parcels-screen1`, branched off `f2-shell-map` — rebased onto `main`
+  after PR #2 merged).**
+  - Pure helpers: `src/app/ratio-stats.ts` (`ratio` = `assessedValue / lastSalePrice` or
+    `null`; `median` handles even/odd; `cod` = `100 × (Σ|r−med|/n) / med`; `ratioBucket` +
+    exported `RatioBucket` union off the 0.90/0.96/1.04/1.10 thresholds) and
+    `src/app/parcel-geojson.ts` (`toFeatureCollection` → `FeatureCollection<Point, ParcelProps>`,
+    `properties: { id, bucket }`, exported `ParcelProps`).
+  - `App`: `toSignal(parcelService.getAll(), { initialValue: [] })` → `parcels` signal;
+    `computed` for `features` / `medianRatio` / `codValue` / `soldCount` / `totalCount`
+    (`soldRatios` filters nulls with an `r is number` guard).
+  - `MapView`: `features = input<FeatureCollection<…> | null>(null)`, bound from `App` via
+    `[features]="features()"`. `map` promoted to a `signal` (so the effect can react to
+    "map created"); `styleReady` signal set in `map.on('load')`. A single `effect()` gates on
+    `map() && styleReady() && features()` — reads all three before any early return so all stay
+    tracked — then `syncParcels()`: `addSource` + two `circle` layers (`parcels` filtered
+    `bucket != 'none'` with a `match` on the 5 ramp colours; `parcels-nosale` filtered
+    `== 'none'`, transparent fill + grey stroke — circles can't dash). Re-runs take the
+    `getSource(...).setData()` branch.
+  - `ParcelService.getAll()` now passes `params: { pageSize: 100 }` — `/parcels` defaults to 20.
+  - **Real dataset counts: 45 parcels, 30 sold, 15 no-sale** (plan doc's "52 / 22 / 30" was
+    approximate). Median ≈ 0.944, COD ≈ 6.3 over the 30 sold — the mockup's 0.994 / 6.8 were
+    placeholder design numbers; 0.944 matches a backend-verified figure in the plan.
+  - **F3 done when:** Screen 1 panel + every parcel the right colour on the map. ✅
 
 ## Angular surface notes (already established)
 
@@ -59,6 +82,17 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
   replacement for `implements OnDestroy`, closer to a `useEffect` cleanup return than a class hook.
 - Host elements are `display: inline` unless `:host` says otherwise — a sizing gotcha for any
   component that needs real dimensions.
+- `input()` (F3) — signal-based component input, the modern `@Input()`. Returns a read-only
+  `Signal`; parent binds with `[features]="expr"`. Because it's a signal it can be an `effect`
+  dependency directly — no `ngOnChanges`. `input.required<T>()` for no-default.
+- `effect()` (F3) — like `useEffect` but dependencies are **inferred** from which signals the
+  callback reads at run time, not a manual array. Ordering gotcha: an early `return` before a
+  signal read means that signal isn't tracked that run. Auto-disposed via injection context.
+  Used to coordinate 3 async events (map created / style loaded / data arrived) that resolve
+  in any order. `computed()` = `useMemo` with no dep array (F3, in `App`).
+- `toSignal(obs, { initialValue })` (F3) lives in `@angular/core/rxjs-interop`; subscribes and
+  unsubscribes for you. `$` suffix = variable holds an `Observable` (RxJS convention, unrelated
+  to `inject`).
 
 ## Capture as you go
 
