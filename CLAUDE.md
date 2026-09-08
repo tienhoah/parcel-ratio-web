@@ -26,16 +26,23 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
 ## Progress
 
 - **F0 (CORS on the API repo): done, merged.** `http://localhost:4200` allowed.
-- **F1: in progress.**
-  - `ng new parcel-ratio-web` — Angular 22, standalone, signals, zoneless, `--style=css`,
-    `--routing=false`, `--ssr=false`, pnpm. Committed to `main` as `initial commit`.
-  - GitHub repo `tienhoah/parcel-ratio-web` (private) created + pushed.
-  - **Next, on a branch:** `Parcel` interface (mirror the JSON shape in the plan) →
-    `src/environments/` via `ng generate environments`, add `apiBaseUrl` (`http://localhost:5005`)
-    and the MapTiler key → `ParcelService` (`inject(HttpClient)`, `getAll/getById/getComparables/
-    getWithin`) → `provideHttpClient()` in `app.config.ts` → dump `/parcels` into a bare `@for`
-    list in `App` to prove the live connection.
-  - **F1 done when:** the list renders live API data.
+- **F1: done, merged (PR #1).** `Parcel` interface, `src/environments/` (`apiBaseUrl`, MapTiler
+  key), `ParcelService` (`getAll/getById/getComparables/getWithin`), `provideHttpClient()`,
+  `/parcels` dumped into a `@for` list. `parcel.service.ts` / `parcel.ts` stay for F3.
+- **F2: done, PR #2 open (`f2-shell-map`).**
+  - Shell: top bar + flex body + 340px static panel; IBM Plex Sans/Mono via `index.html` +
+    `styles.css`.
+  - `MapView` component (`src/app/map-view/`) owns the MapLibre instance: host element is the
+    container (no `viewChild`), `new Map()` in `afterNextRender`, `inject(DestroyRef).onDestroy`
+    → `map.remove()`. MapTiler Dataviz Light, Vancouver centre.
+  - **`maplibre-gl` pinned to v5** (`^5`). v6.7 loads its tile-parser worker from a split
+    `maplibre-gl-worker.mjs` ES-module worker → the Angular/Vite dev server can't serve it
+    through dep pre-bundling → dead worker, sources never load, blank map. v5 inlines the
+    worker as a blob. (Terra Draw's adapter targets v5 anyway.) `allowedCommonJsDependencies:
+    ["maplibre-gl"]` in `angular.json` silences a prod-build warning.
+  - `MapView` `:host { display: block }` — component hosts are `display: inline` by default,
+    so the container had zero height and MapLibre rendered nothing. Both bugs stacked.
+  - **F2 done when:** empty shell + basemap renders. ✅
 
 ## Angular surface notes (already established)
 
@@ -46,6 +53,12 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
   in `app.config.ts`.
 - `HttpClient` returns RxJS `Observable`, not `Promise`. `toSignal()` bridges to a signal.
 - Tests are Vitest now — irrelevant, tests are out of scope.
+- Wrapping an imperative lib (MapLibre): the component's host element is the mount point —
+  `inject(ElementRef)`, no template ref / `viewChild`. Create in `afterNextRender` (browser-only,
+  post-first-render), tear down via `inject(DestroyRef).onDestroy(...)` — the `inject()`-era
+  replacement for `implements OnDestroy`, closer to a `useEffect` cleanup return than a class hook.
+- Host elements are `display: inline` unless `:host` says otherwise — a sizing gotcha for any
+  component that needs real dimensions.
 
 ## Capture as you go
 
