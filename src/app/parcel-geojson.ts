@@ -12,3 +12,9 @@ export const toFeatureCollection = (parcels: Parcel[]): FeatureCollection<Point,
     properties: { id: p.id, bucket: ratioBucket(ratio(p)) },
   })),
 });
+
+export const ringToBbox = (ring: number[][]): [number, number, number, number] => {
+  const lngs = ring.map((p) => p[0]);
+  const lats = ring.map((p) => p[1]);
+  return [Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)];
+};

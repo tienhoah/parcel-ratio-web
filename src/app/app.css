@@ -158,3 +158,58 @@ app-map-view.map {
   align-items: center;
   justify-content: center;
 }
+
+/* --- Screen 2 --- */
+
+.head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pill {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--secondary);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.link-btn {
+  font: inherit;
+  color: var(--link);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+}
+.table-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+}
+.table-row .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.table-row .id {
+  flex: 1;
+}
+.table-row .r {
+  color: var(--secondary);
+}
