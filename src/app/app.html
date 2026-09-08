@@ -4,9 +4,51 @@
 </header>
 
 <div class="body">
-  <app-map-view class="map" />
+  <app-map-view class="map" [features]="features()" />
   <aside class="panel">
-    <!-- static placeholder for F2 -->
-    <p class="sub">Panel — F3</p>
+    <section class="block">
+      <h1 class="s1-title">All sales</h1>
+      <p class="s1-sub">{{ soldCount() }} of {{ totalCount() }} parcels sold recently</p>
+    </section>
+
+    <section class="block">
+      <span class="label">Assessment ratio</span>
+      <div class="ramp">
+        <span style="background: #1c5cab"></span>
+        <span style="background: #5598e7"></span>
+        <span style="background: #e8e6e0"></span>
+        <span style="background: #e8807f"></span>
+        <span style="background: #b02c2c"></span>
+      </div>
+      <div class="ticks mono"><span>&lt;0.90</span><span>1.00</span><span>&gt;1.10</span></div>
+      <div class="ends"><span>Under-assessed</span><span>Over-assessed</span></div>
+      <div class="nosale">
+        <span class="dot-hollow"></span>
+        <span>No recent sale — no ratio</span>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="block">
+      <div class="stats">
+        <div>
+          <span class="label">Median ratio</span>
+          <span class="stat mono">{{ medianRatio() | number: '1.3-3' }}</span>
+        </div>
+        <div>
+          <span class="label">COD</span>
+          <span class="stat mono">{{ codValue() | number: '1.1-1' }}</span>
+        </div>
+      </div>
+      <p class="s1-sub">Computed from the {{ soldCount() }} sold parcels only.</p>
+    </section>
+
+    <div class="divider"></div>
+
+    <div class="callout">
+      <span class="callout-glyph">i</span>
+      <p>The south-west corner reads blue. Draw a square around it to run a study on that area.</p>
+    </div>
   </aside>
 </div>
