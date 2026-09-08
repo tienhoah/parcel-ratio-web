@@ -6,12 +6,16 @@ import {
   ElementRef,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 import { GeoJSONSource, Map as MaplibreMap } from 'maplibre-gl';
 import type { FeatureCollection, Point } from 'geojson';
-import type { ParcelProps } from '../parcel-geojson';
+import { ringToBbox, type ParcelProps } from '../parcel-geojson';
 import { environment } from '../../environments/environment';
+import { RAMP } from '../ramp';
+import { TerraDraw, TerraDrawRectangleMode } from 'terra-draw';
+import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter';
 
 @Component({
   selector: 'app-map-view',
@@ -23,9 +27,12 @@ export class MapView {
   private readonly destroyRef = inject(DestroyRef);
 
   features = input<FeatureCollection<Point, ParcelProps> | null>(null);
+  areaDrawn = output<[number, number, number, number]>();
 
   private readonly map = signal<MaplibreMap | undefined>(undefined);
   private readonly styleReady = signal(false);
+
+  private draw?: TerraDraw;
 
   constructor() {
     afterNextRender(() => {
@@ -37,9 +44,29 @@ export class MapView {
       });
 
       map.on('error', (e) => console.error('[map]', e.error));
-      map.on('load', () => this.styleReady.set(true));
+      map.on('load', () => {
+        this.styleReady.set(true);
+        const draw = new TerraDraw({
+          adapter: new TerraDrawMapLibreGLAdapter({ map }),
+          modes: [new TerraDrawRectangleMode()],
+        });
+        draw.start();
+        draw.setMode('static');
+        draw.on('finish', (id, context) => {
+          if (context.mode !== 'rectangle') return;
+          const feature = draw.getSnapshot().find((f) => f.id === id);
+          if (!feature || feature.geometry.type !== 'Polygon') return;
+          const bbox = ringToBbox(feature.geometry.coordinates[0]); // helper
+          this.areaDrawn.emit(bbox);
+          draw.setMode('static'); // disarm after one rectangle
+        });
+        this.draw = draw;
+      });
       requestAnimationFrame(() => map.resize());
-      this.destroyRef.onDestroy(() => map.remove());
+      this.destroyRef.onDestroy(() => {
+        this.draw?.stop();
+        map.remove();
+      });
       this.map.set(map);
     });
 
@@ -71,16 +98,16 @@ export class MapView {
           'match',
           ['get', 'bucket'],
           'low',
-          '#1c5cab',
+          RAMP.low,
           'midLow',
-          '#5598e7',
+          RAMP.midLow,
           'mid',
-          '#e8e6e0',
+          RAMP.mid,
           'midHigh',
-          '#e8807f',
+          RAMP.midHigh,
           'high',
-          '#b02c2c',
-          '#b8b6ae',
+          RAMP.high,
+          RAMP.none,
         ],
         'circle-stroke-width': 1,
         'circle-stroke-color': 'rgba(11,11,11,0.15)',
@@ -96,8 +123,17 @@ export class MapView {
         'circle-radius': 5,
         'circle-color': 'rgba(0,0,0,0)',
         'circle-stroke-width': 1,
-        'circle-stroke-color': '#b8b6ae',
+        'circle-stroke-color': RAMP.none,
       },
     });
+  }
+
+  startDraw(): void {
+    this.draw?.setMode('rectangle');
+  }
+
+  clearDraw(): void {
+    this.draw?.clear();
+    this.draw?.setMode('static');
   }
 }

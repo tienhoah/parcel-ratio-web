@@ -21,6 +21,8 @@
     "@angular/router": "^22.1.0",
     "maplibre-gl": "^5.24.0",
     "rxjs": "~7.8.0",
+    "terra-draw": "^1.33.0",
+    "terra-draw-maplibre-gl-adapter": "^1.4.1",
     "tslib": "^2.3.0"
   },
   "devDependencies": {

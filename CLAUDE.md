@@ -66,6 +66,38 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
     approximate). Median ≈ 0.944, COD ≈ 6.3 over the 30 sold — the mockup's 0.994 / 6.8 were
     placeholder design numbers; 0.944 matches a backend-verified figure in the plan.
   - **F3 done when:** Screen 1 panel + every parcel the right colour on the map. ✅
+- **F4: done, PR #4 (`f4-draw-screen2`, off `main`).**
+  - Deps: `terra-draw@1` + **`terra-draw-maplibre-gl-adapter`** (hyphenated — the plan doc's
+    `@terra-draw/maplibre-gl-adapter` scoped name is pre-v1 and does not exist). Peers want
+    `maplibre-gl >=4`, so the v5 pin is fine.
+  - `src/app/ramp.ts` — `RAMP: Record<RatioBucket, string>`, the single source for the 5 ramp
+    hexes + no-sale grey. Wired into `MapView`'s `match` expression and the legend `@for`.
+  - `MapView`: **Terra Draw created inside `map.on('load')`** (starting it before the style
+    loads = adapter never attaches pointer handlers, silent dead draw). `new TerraDraw({ adapter:
+    new TerraDrawMapLibreGLAdapter({ map }), modes: [new TerraDrawRectangleMode()] })`, `.start()`,
+    `.setMode('static')`. `'static'` is auto-registered alongside `'rectangle'`. `draw.on('finish',
+    (id, ctx) => …)` — guard `ctx.mode === 'rectangle'` and `feature.geometry.type === 'Polygon'`
+    (Terra Draw's store geometry is a union), then `ringToBbox(coordinates[0])` → `areaDrawn`
+    output. `startDraw()` = `setMode('rectangle')`; `clearDraw()` = `clear()` + `setMode('static')`.
+    Teardown via the field: `onDestroy(() => { this.draw?.stop(); map.remove(); })`.
+  - `ringToBbox(ring: number[][])` in `parcel-geojson.ts` — min/max of the closed ring →
+    `[minLon, minLat, maxLon, maxLat]`.
+  - `App`: `mapView = viewChild(MapView)` (signal query — the sanctioned way to call a child's
+    imperative method, distinct from the F2 "no viewChild for the mount element" rule).
+    `area = signal<WithinResult | null>(null)` is the whole F4 screen state — `@if (area(); as a)`
+    swaps Screen 2 / Screen 1 in the template. `onArea(bbox)` → `getWithin(...).pipe(
+    takeUntilDestroyed(this.destroyRef)).subscribe(r => this.area.set(r))` (manual subscribe is
+    right for an event-triggered call). `clearArea()` → `area.set(null)` + `mapView()?.clearDraw()`.
+    `areaSold` / `areaSoldCount` / `areaNoSaleCount` / `areaRows` (sorted) / `areaFinding` computed.
+  - `/within` returns **all** parcels in the box (sold + no-sale); `medianRatio`/`cod` are
+    server-computed over sold only, both `0` when the box has no sold parcel (template shows `—`).
+    Count line is derived client-side.
+  - `areaFinding` fires the "Consistent, but low." callout when `median > 0 && median < 0.9 &&
+    cod <= 15`. The "~15% below market" wording is hardcoded (fine for the Marpole demo ≈ 0.845).
+  - **F4 done when:** a box over Marpole shows ≈ 0.845 / ≈ 2.8 + the finding sentence. ✅
+- **F6 note:** the panel is still one big inline `@if` in `App`. Splitting into `PanelAll` /
+  `PanelArea` (/ `PanelParcel`) child components is F6's "discriminated-union panel state" work —
+  deliberately deferred, do it in F6 with all three screens in view, not piecemeal.
 
 ## Angular surface notes (already established)
 
@@ -93,6 +125,12 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
 - `toSignal(obs, { initialValue })` (F3) lives in `@angular/core/rxjs-interop`; subscribes and
   unsubscribes for you. `$` suffix = variable holds an `Observable` (RxJS convention, unrelated
   to `inject`).
+- `output<T>()` (F4) — modern `@Output()`, no `EventEmitter`. Bind `(areaDrawn)="onArea($event)"`,
+  fire with `.emit(value)`.
+- `viewChild(Cmp)` (F4) — signal query, returns `Signal<Cmp | undefined>`. Fine for calling a
+  child's imperative method; still don't use it for a component's own mount element.
+- `takeUntilDestroyed(destroyRef)` (F4) — pass `this.destroyRef` when calling outside an
+  injection context (e.g. an event handler); the no-arg form only works in a field/constructor.
 
 ## Capture as you go
 
