@@ -27,7 +27,9 @@ export class MapView {
   private readonly destroyRef = inject(DestroyRef);
 
   features = input<FeatureCollection<Point, ParcelProps> | null>(null);
+  selectedId = input<string | null>(null);
   areaDrawn = output<[number, number, number, number]>();
+  parcelSelected = output<string>();
 
   private readonly map = signal<MaplibreMap | undefined>(undefined);
   private readonly styleReady = signal(false);
@@ -44,6 +46,14 @@ export class MapView {
       });
 
       map.on('error', (e) => console.error('[map]', e.error));
+
+      map.on('click', 'parcels', (e) => {
+        const id = e.features?.[0]?.properties?.['id'];
+        if (typeof id === 'string') this.parcelSelected.emit(id);
+      });
+      map.on('mouseenter', 'parcels', () => (map.getCanvas().style.cursor = 'pointer'));
+      map.on('mouseleave', 'parcels', () => (map.getCanvas().style.cursor = ''));
+
       map.on('load', () => {
         this.styleReady.set(true);
         const draw = new TerraDraw({
@@ -75,6 +85,15 @@ export class MapView {
       const fc = this.features();
       if (!map || !this.styleReady() || !fc) return;
       this.syncParcels(map, fc);
+    });
+
+    // highlight the selected parcel — the layer exists only after syncParcels has run,
+    // which by the time a parcel can be clicked is always the case
+    effect(() => {
+      const map = this.map();
+      const id = this.selectedId();
+      if (!map || !map.getLayer('parcels-selected')) return;
+      map.setFilter('parcels-selected', ['==', ['get', 'id'], id ?? '']);
     });
   }
 
@@ -124,6 +143,19 @@ export class MapView {
         'circle-color': 'rgba(0,0,0,0)',
         'circle-stroke-width': 1,
         'circle-stroke-color': RAMP.none,
+      },
+    });
+
+    map.addLayer({
+      id: 'parcels-selected',
+      type: 'circle',
+      source: 'parcels',
+      filter: ['==', ['get', 'id'], ''], // nothing until selectedId is set
+      paint: {
+        'circle-radius': 8,
+        'circle-color': 'rgba(0,0,0,0)',
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#0b0b0b',
       },
     });
   }
