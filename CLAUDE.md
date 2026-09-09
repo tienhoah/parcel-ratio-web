@@ -120,11 +120,24 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
     mockup (decorative) is **not** implemented.
   - **F5 done when:** clicking any sold parcel fills the detail panel + rings it on the map;
     no-sale parcels are inert. ✅
-- **F6 note:** the panel is still one big inline `@if / @else if / @else` in `App` (~230 lines of
-  template, ~15 computed). Splitting into `PanelAll` / `PanelArea` / `PanelParcel` child components
-  is F6's "discriminated-union panel state" work — deliberately deferred, do it in F6 with all
-  three screens in view, not piecemeal. F6 is otherwise droppable (empty/loading/error states,
-  deploy).
+- **F6: in progress, PR #6 (`f6-panel-split`, off `main`).**
+  - **Panel split done.** `App` 120 → ~58 lines: data (`parcels`, `features`), state (`area`,
+    `detail`), four handlers, no panel `computed`s. Three components, one contract each:
+    `<app-panel-all [parcels] (draw)>`, `<app-panel-area [result] (clear)>`,
+    `<app-panel-parcel [detail] (back)>` — one `input.required<T>()` down, one `output<void>()`
+    up, each owns its derived state. `@if (detail(); as d)` guarantees the input is non-null so
+    `input.required` is safe.
+  - `src/app/panel-{all,area,parcel}/` — `.ts`/`.html`/`.css` each. `ParcelDetail` interface
+    lives in `panel-parcel.ts`.
+  - **CSS:** shared panel primitives (`.block` `.label` `.callout` `.stat` `.stats` `.divider`
+    `.head-row` `.pill` `.link-btn` `.table` `.ticks` `.ends` `.s1-title` `.s1-sub`) moved to
+    global `styles.css` — component `ViewEncapsulation` would otherwise stop them reaching child
+    templates. Each panel component's `:host { display: flex; flex-direction: column; gap: 24px }`
+    is the layout; `.panel` in `app.css` is now just the 340px box.
+  - `panel-area`: `medianColour` computed — median in its ramp colour **except** the near-white
+    `mid` bucket (`#e8e6e0` is illegible as text on the panel), where it falls back to ink.
+  - **Still open in F6 (droppable):** empty/loading/error states (a failed `getAll`/`getWithin`
+    currently shows nothing); deploy (Azure Static Web Apps + API).
 
 ## Angular surface notes (already established)
 
@@ -164,6 +177,11 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
   Register any time; won't fire until the layer exists. Feature highlight = a filtered extra
   layer + `map.setFilter(...)` driven by a signal, no per-DOM markers.
 - `@else if` chains after `@if` (F5); `@if (x(); as y)` aliases the truthy value inside the block.
+- `input.required<T>()` (F6) — no default, parent must bind. Safe when a parent `@if` guarantees
+  the value. `output<void>()` for a pure signal ("clear", "back", "draw") — `.emit()` no arg.
+- Component `ViewEncapsulation` (default Emulated) scopes a component's `.css` to its own
+  template — a parent's classes don't reach a child's DOM. Shared "design-system" classes go in
+  global `styles.css`; component `.css` holds only that component's bespoke rules + `:host`.
 
 ## Capture as you go
 

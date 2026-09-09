@@ -1,0 +1,55 @@
+<section class="block">
+  <div class="head-row">
+    <div>
+      <h1 class="s1-title">Selected area</h1>
+      <p class="s1-sub">
+        {{ soldCount() }} sold · {{ noSaleCount() }} with no sale, excluded
+      </p>
+    </div>
+    <button type="button" class="pill" (click)="clear.emit()">Clear</button>
+  </div>
+</section>
+
+<section class="block">
+  <div class="stats">
+    <div>
+      <span class="label">Median ratio</span>
+      <span class="stat mono" [style.color]="medianColour()">
+        {{ result().medianRatio > 0 ? (result().medianRatio | number: '1.3-3') : '—' }}
+      </span>
+      <span class="s1-sub">target 0.90–1.10</span>
+    </div>
+    <div>
+      <span class="label">COD</span>
+      <span class="stat mono">
+        {{ result().medianRatio > 0 ? (result().cod | number: '1.1-1') : '—' }}
+      </span>
+      <span class="s1-sub">target ≤15</span>
+    </div>
+  </div>
+</section>
+
+@if (finding()) {
+  <div class="callout">
+    <span class="callout-glyph">i</span>
+    <p>
+      <strong>Consistent, but low.</strong> These assessments agree with each other and sit about
+      15% below market.
+    </p>
+  </div>
+}
+
+<div class="divider"></div>
+
+<section class="block">
+  <div class="ends"><span>Parcel</span><span>Ratio</span></div>
+  <div class="table">
+    @for (row of rows(); track row.id) {
+      <div class="table-row">
+        <span class="dot" [style.background]="RAMP[ratioBucket(row.r)]"></span>
+        <span class="mono id">{{ row.id }}</span>
+        <span class="mono r">{{ row.r | number: '1.3-3' }}</span>
+      </div>
+    }
+  </div>
+</section>
