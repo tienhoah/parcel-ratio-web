@@ -1,0 +1,70 @@
+<section class="block">
+  <div class="head-row">
+    <div>
+      <h1 class="s1-title">
+        <span class="pin">📍</span>
+        <span class="mono">{{ detail().parcel.id }}</span>
+      </h1>
+      <p class="s1-sub">{{ detail().parcel.address }}</p>
+    </div>
+    <button type="button" class="pill" (click)="back.emit()">← All sales</button>
+  </div>
+</section>
+
+<section class="block">
+  <div class="stats">
+    <div>
+      <span class="label">Assessed</span>
+      <span class="stat mono">${{ detail().parcel.assessedValue | number: '1.0-0' }}</span>
+    </div>
+    <div>
+      <span class="label">Last sale</span>
+      <span class="stat mono">${{ detail().parcel.lastSalePrice | number: '1.0-0' }}</span>
+      <span class="s1-sub">{{ detail().parcel.lastSaleDate }}</span>
+    </div>
+  </div>
+</section>
+
+<div class="chip">
+  <span class="dot ring" [style.background]="RAMP[ratioBucket(ratio(detail().parcel))]"></span>
+  <span class="chip-label">Ratio</span>
+  <span class="chip-value mono">{{ ratio(detail().parcel) | number: '1.3-3' }}</span>
+</div>
+
+<section class="block">
+  <div class="attrs">
+    <div class="attr">
+      <span>Neighbourhood</span><span class="mono">{{ detail().parcel.neighbourhood }}</span>
+    </div>
+    <div class="attr">
+      <span>Land area</span>
+      <span class="mono">{{ detail().parcel.landAreaSqFt | number: '1.0-0' }} sq ft</span>
+    </div>
+    <div class="attr">
+      <span>Building area</span>
+      <span class="mono">{{ detail().parcel.buildingAreaSqFt | number: '1.0-0' }} sq ft</span>
+    </div>
+    <div class="attr">
+      <span>Year built</span><span class="mono">{{ detail().parcel.yearBuilt }}</span>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="ends"><span>Comparables</span><span>5 nearest sales</span></div>
+  <div class="table">
+    @for (c of compRows(); track c.id) {
+      <div class="comp-row">
+        <span class="dot comp-dot"></span>
+        <div class="comp-main">
+          <span class="mono">{{ c.id }}</span>
+          <span class="s1-sub">{{ c.date }} · {{ c.metres }} m away</span>
+        </div>
+        <div class="comp-fig">
+          <span class="mono">${{ c.price | number: '1.0-0' }}</span>
+          <span class="mono r">{{ c.r | number: '1.3-3' }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</section>
