@@ -120,7 +120,7 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
     mockup (decorative) is **not** implemented.
   - **F5 done when:** clicking any sold parcel fills the detail panel + rings it on the map;
     no-sale parcels are inert. ✅
-- **F6: in progress, PR #6 (`f6-panel-split`, off `main`).**
+- **F6: done, merged (PR #6). Build complete — F0–F6 all merged to `main`.**
   - **Panel split done.** `App` 120 → ~58 lines: data (`parcels`, `features`), state (`area`,
     `detail`), four handlers, no panel `computed`s. Three components, one contract each:
     `<app-panel-all [parcels] (draw)>`, `<app-panel-area [result] (clear)>`,
@@ -136,8 +136,10 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
     is the layout; `.panel` in `app.css` is now just the 340px box.
   - `panel-area`: `medianColour` computed — median in its ramp colour **except** the near-white
     `mid` bucket (`#e8e6e0` is illegible as text on the panel), where it falls back to ink.
-  - **Still open in F6 (droppable):** empty/loading/error states (a failed `getAll`/`getWithin`
-    currently shows nothing); deploy (Azure Static Web Apps + API).
+  - **Dropped, by decision (2026-09-09):** empty/loading/error states, and deploy. The one rule —
+    the deliverable is the interview sentences, not the repo. A failed `getAll`/`getWithin`
+    renders nothing; acknowledged and left. If the front end is ever deployed, F0's CORS policy
+    on `parcel-api` needs the deployed origin added (see `../parcel-web-plan.md` F0 / F6).
 
 ## Angular surface notes (already established)
 
