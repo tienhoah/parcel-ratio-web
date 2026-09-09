@@ -2,9 +2,11 @@ import { Component, computed, DestroyRef, inject, signal, viewChild } from '@ang
 import { MapView } from './map-view/map-view';
 import { ParcelService } from './parcel.service';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin } from 'rxjs';
 import { toFeatureCollection } from './parcel-geojson';
 import { Parcel, WithinResult } from './parcel';
 import { cod, median, ratio, ratioBucket, type RatioBucket } from './ratio-stats';
+import { haversineMetres } from './geo';
 import { RAMP } from './ramp';
 import { DecimalPipe } from '@angular/common';
 
@@ -42,8 +44,9 @@ export class App {
 
   // --- Screen 2: selected area ---
 
-  /** template helper — MapLibre ramp colour for a ratio value */
+  /** template helpers */
   readonly ratioBucket = ratioBucket;
+  readonly ratio = ratio;
 
   private areaSold = computed(() =>
     (this.area()?.parcels ?? []).filter((p) => p.lastSalePrice != null),
@@ -75,5 +78,41 @@ export class App {
   clearArea(): void {
     this.area.set(null);
     this.mapView()?.clearDraw();
+  }
+
+  // --- Screen 3: parcel detail ---
+
+  detail = signal<{ parcel: Parcel; comps: Parcel[] } | null>(null);
+
+  /** comparables with client-side distance from the selected parcel, its ratio */
+  compRows = computed(() => {
+    const d = this.detail();
+    if (!d) return [];
+    return d.comps.map((c) => ({
+      id: c.id,
+      date: c.lastSaleDate,
+      price: c.lastSalePrice,
+      r: ratio(c),
+      metres: Math.round(
+        haversineMetres(d.parcel.latitude, d.parcel.longitude, c.latitude, c.longitude),
+      ),
+    }));
+  });
+
+  onParcel(id: string): void {
+    forkJoin({
+      parcel: this.parcelService.getById(id),
+      comps: this.parcelService.getComparables(id),
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((d) => {
+        this.detail.set(d);
+        this.area.set(null);
+        this.mapView()?.clearDraw();
+      });
+  }
+
+  clearDetail(): void {
+    this.detail.set(null);
   }
 }

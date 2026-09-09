@@ -95,9 +95,36 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
   - `areaFinding` fires the "Consistent, but low." callout when `median > 0 && median < 0.9 &&
     cod <= 15`. The "~15% below market" wording is hardcoded (fine for the Marpole demo ≈ 0.845).
   - **F4 done when:** a box over Marpole shows ≈ 0.845 / ≈ 2.8 + the finding sentence. ✅
-- **F6 note:** the panel is still one big inline `@if` in `App`. Splitting into `PanelAll` /
-  `PanelArea` (/ `PanelParcel`) child components is F6's "discriminated-union panel state" work —
-  deliberately deferred, do it in F6 with all three screens in view, not piecemeal.
+- **F5: done, PR #5 (`f5-parcel-detail`, off `main`).**
+  - `MapView`: `map.on('click', 'parcels', …)` — **layer-scoped** click, so only sold parcels
+    fire; emits `parcelSelected = output<string>()`. `mouseenter`/`mouseleave` on `'parcels'`
+    toggle `map.getCanvas().style.cursor`. Handlers registered outside `map.on('load')` — MapLibre
+    queues layer handlers fine. No-sale parcels are simply not wired → not clickable (the plan's
+    "pick one" choice).
+  - Highlight: `selectedId = input<string | null>(null)`; `syncParcels` adds a `parcels-selected`
+    circle layer last (draws on top), filter starts `['==', ['get','id'], '']` (matches nothing).
+    A **second `effect()`** reads `selectedId()` and calls
+    `setFilter('parcels-selected', ['==', ['get','id'], id ?? ''])`.
+  - `src/app/geo.ts` — `haversineMetres(aLat, aLon, bLat, bLon)`, client-side comp distance.
+  - `App`: `detail = signal<{ parcel: Parcel; comps: Parcel[] } | null>(null)`. `onParcel(id)` →
+    `forkJoin({ parcel: getById(id), comps: getComparables(id) })` (parallel, one emission) →
+    `.subscribe(d => { this.detail.set(d); this.area.set(null); this.mapView()?.clearDraw(); })` —
+    a parcel supersedes an area selection. `clearDetail()` → `detail.set(null)`. `compRows`
+    computed maps comps → `{ id, date, price, r, metres }`.
+  - Template precedence: `@if (detail(); as d) { S3 } @else if (area(); as a) { S2 } @else { S1 }`.
+    Bindings: `[selectedId]="detail()?.parcel?.id ?? null"`, `(parcelSelected)="onParcel($event)"`.
+    `ratio` / `ratioBucket` exposed as `readonly` fields for template use.
+  - Screen 3 markup: pin (📍 emoji stand-in) + id + address + "← All sales" pill; assessed /
+    last-sale grid; ratio chip (ramp dot + ring); 4 attribute rows (**no bedrooms**); comparables
+    list with amber hollow dots, `date · N m away`, price + ratio. The green check glyph from the
+    mockup (decorative) is **not** implemented.
+  - **F5 done when:** clicking any sold parcel fills the detail panel + rings it on the map;
+    no-sale parcels are inert. ✅
+- **F6 note:** the panel is still one big inline `@if / @else if / @else` in `App` (~230 lines of
+  template, ~15 computed). Splitting into `PanelAll` / `PanelArea` / `PanelParcel` child components
+  is F6's "discriminated-union panel state" work — deliberately deferred, do it in F6 with all
+  three screens in view, not piecemeal. F6 is otherwise droppable (empty/loading/error states,
+  deploy).
 
 ## Angular surface notes (already established)
 
@@ -131,6 +158,12 @@ The developer is a 7-yr JS/TS/React dev; **Angular is the weak spot** this miles
   child's imperative method; still don't use it for a component's own mount element.
 - `takeUntilDestroyed(destroyRef)` (F4) — pass `this.destroyRef` when calling outside an
   injection context (e.g. an event handler); the no-arg form only works in a field/constructor.
+- `forkJoin({ a: obs, b: obs })` (F5) — RxJS; fires all in parallel, emits once when all complete
+  as `{ a, b }`. The `Promise.all` of Observables. Where React would `Promise.all([...])`.
+- MapLibre `map.on('click', 'layerId', cb)` (F5) — layer-scoped; `e.features[0].properties`.
+  Register any time; won't fire until the layer exists. Feature highlight = a filtered extra
+  layer + `map.setFilter(...)` driven by a signal, no per-DOM markers.
+- `@else if` chains after `@if` (F5); `@if (x(); as y)` aliases the truthy value inside the block.
 
 ## Capture as you go
 
