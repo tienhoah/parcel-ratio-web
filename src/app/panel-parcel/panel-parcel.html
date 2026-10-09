@@ -26,7 +26,7 @@
 </section>
 
 <div class="chip">
-  <span class="dot ring" [style.background]="RAMP[ratioBucket(ratio(detail().parcel))]"></span>
+  <span class="swatch ring" [style.background]="RAMP[ratioBucket(ratio(detail().parcel))]"></span>
   <span class="chip-label">Ratio</span>
   <span class="chip-value mono">{{ ratio(detail().parcel) | number: '1.3-3' }}</span>
 </div>
@@ -55,7 +55,7 @@
   <div class="table">
     @for (c of compRows(); track c.id) {
       <div class="comp-row">
-        <span class="dot comp-dot"></span>
+        <span class="swatch comp-dot"></span>
         <div class="comp-main">
           <span class="mono">{{ c.id }}</span>
           <span class="s1-sub">{{ c.date }} · {{ c.metres }} m away</span>
