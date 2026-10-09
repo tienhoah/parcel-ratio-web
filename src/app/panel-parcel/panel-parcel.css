@@ -21,7 +21,11 @@
   background: var(--page);
   padding: 13px;
 }
-.chip .dot.ring {
+.chip .swatch.ring {
+  display: block;
+  position: static;
+  box-sizing: content-box;
+  margin-right: 4px;
   width: 11px;
   height: 11px;
   border-radius: 50%;
@@ -61,6 +65,10 @@
   border-bottom: 1px solid var(--border);
 }
 .comp-dot {
+  display: block;
+  position: static;
+  box-sizing: content-box;
+  margin-right: 4px;
   width: 8px;
   height: 8px;
   border-radius: 50%;

@@ -164,7 +164,9 @@ body {
   border-bottom: 1px solid var(--border);
   font-size: 12.5px;
 }
-.table-row .dot {
+.table-row .swatch {
+  display: block;
+  position: static;
   width: 9px;
   height: 9px;
   border-radius: 50%;
