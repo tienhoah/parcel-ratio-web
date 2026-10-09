@@ -8,7 +8,7 @@ A small property-assessment tool: parcels on a map coloured by assessment ratio 
 - **API:** https://parcel-ratio-api-nick-gqeccuf3hsekged4.westus3-01.azurewebsites.net/parcels
 - Runs on free tiers, so the first load can take 10 to 20 seconds (App Service cold start, database waking up). Hosting is Azure free-account services and may be switched off after the free period.
 
-Try it: click a coloured dot for its comparables, or use the square tool and draw over Marpole (south of the map) to see a consistent-but-low area (median about 0.845).
+Try it: click a coloured dot for its comparables, or use the square tool and draw over Marpole (south of the map): 7 sold parcels, median ratio 0.944, COD 5.5.
 
 ### Architecture
 
